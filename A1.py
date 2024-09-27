@@ -6,7 +6,7 @@ numeric_chars = list("0123456789")
 var_chars = alphabet_chars + numeric_chars
 all_valid_chars = var_chars + ["(", ")", ".", "\\"]
 valid_examples_fp = "./valid_examples.txt"
-invalid_examples_fp = "./invalid_examples.txt"
+invalid_examples_fp = "./invalid_examples_updated.txt"
 
 
 def read_lines_from_txt(fp: [str, os.PathLike]) -> List[str]:
@@ -15,8 +15,11 @@ def read_lines_from_txt(fp: [str, os.PathLike]) -> List[str]:
     :return: The lines of the file path removing trailing whitespaces
     and newline characters.
     """
-    # TODO
-    return []
+    
+    with open(fp) as f:
+        lines = f.read().splitlines()
+    print(lines)
+    return lines
 
 
 def is_valid_var_name(s: str) -> bool:
