@@ -18,7 +18,6 @@ def read_lines_from_txt(fp: [str, os.PathLike]) -> List[str]:
     
     with open(fp) as f:
         lines = f.read().splitlines()
-    print(lines)
     return lines
 
 
