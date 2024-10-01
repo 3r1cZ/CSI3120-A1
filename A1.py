@@ -205,26 +205,24 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node
         node = Node([])
 
     while tokens:
-        token = tokens.pop(0)  # Get the next token
+        token = tokens.pop(0)  
 
-        if token == '(' or token == '\\':  # Start of a new expression
-            if node.elem == []:
+        # sepraters for next level
+        if token == '(' or token == '\\':  
+            if node.elem == []: # add to root
                 node.elem.append(token)
-            else:
-                # Create a new child node
-                child_node = Node([])
+            else: # create child element for new level
+                child_node = Node([]) 
                 child_node.elem.append(token)
                 node.add_child_node(child_node)
-                # Recurse to build the subtree for the expression
                 build_parse_tree_rec(tokens, child_node)
-        elif token == ')':  # End of the current expression
-            # Add the ')' to the current node's elements
+        elif token == ')': # go back to parent level
             node.elem.append(token)
-            return node  # Return to the parent
-        else:  # Regular token (variable, slash, etc.)
-            node.elem.append(token)  # Add the token to the current node
+            return node  
+        else: # normal token gets added to current level
+            node.elem.append(token)
 
-    return node  # Return the constructed node
+    return node 
 
 
 def build_parse_tree(tokens: List[str]) -> ParseTree:
