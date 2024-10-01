@@ -78,8 +78,8 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     """
     spaceNum = 0
     
-    for k in range(len(s)):
-        if s[k] == ' ':
+    for k in range(len(s_)):
+        if s_[k] == ' ':
             spaceNum += 1
             continue
         if spaceNum > 1:
@@ -88,35 +88,34 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
         else:
             spaceNum = 0
     
-    s = s_.replace(' ', '')  
+    s = s_.replace(' ', '_')  
     tokens = []
     i = 0
     closePram_ToAdd = 0
-    open_parens = 0 
+    open_parensExtra = 0 
     
     while i < len(s):
         char = s[i]
         
         if char == '\\':  # Lambda symbol
             tokens.append('\\')
-            tokens.append('_')
+            i += 1
+            
+        elif char == '_':  
             i += 1
             
         elif char == '(':  
             tokens.append('(')
-            tokens.append('_')
-            open_parens -= 1
+            open_parensExtra = open_parensExtra - 1
             i += 1
             
         elif char == ')':  
             tokens.append(')')
-            tokens.append('_')
-            open_parens += 1
+            open_parensExtra = open_parensExtra + 1
             i += 1
             
         elif char == '.':  
             tokens.append('(')
-            tokens.append('_')
             closePram_ToAdd = closePram_ToAdd + 1
             i += 1
             
@@ -128,7 +127,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
                 i += 1
             if is_valid_var_name(var):
                 tokens.append(var)
-                tokens.append('_')
+
             else:
                 print(f"Error at position {i}: Invalid variable name '{var}'.")
                 return False  
@@ -136,13 +135,12 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
         elif closePram_ToAdd != 0:
             for j in range(closePram_ToAdd):
                 tokens.append(')')
-                tokens.append('_')
         
-        elif open_parens < 0:
+        elif open_parensExtra < 0:
             print(f"Error at position {i}: Missing open parenthesis '{char}'.")
             return False
         
-        elif open_parens > 0:
+        elif open_parensExtra > 0:
             print(f"Error at position {i}: Missing close parenthesis '{char}'.")
             return False
 
