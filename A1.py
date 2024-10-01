@@ -76,6 +76,18 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     :param s_: the input string
     :return: A List of tokens (strings) if a valid input, otherwise False
     """
+    spaceNum = 0
+    
+    for k in range(len(s)):
+        if s[k] == ' ':
+            spaceNum += 1
+            continue
+        if spaceNum > 1:
+            print(f"Error at position {k}: Invalid Spacing (More than one space seperates characters).")
+            continue
+        else:
+            spaceNum = 0
+    
     s = s_.replace(' ', '')  
     tokens = []
     i = 0
@@ -87,20 +99,24 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
         
         if char == '\\':  # Lambda symbol
             tokens.append('\\')
+            tokens.append('_')
             i += 1
             
         elif char == '(':  
             tokens.append('(')
+            tokens.append('_')
             open_parens -= 1
             i += 1
             
         elif char == ')':  
             tokens.append(')')
+            tokens.append('_')
             open_parens += 1
             i += 1
             
         elif char == '.':  
             tokens.append('(')
+            tokens.append('_')
             closePram_ToAdd = closePram_ToAdd + 1
             i += 1
             
@@ -112,6 +128,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
                 i += 1
             if is_valid_var_name(var):
                 tokens.append(var)
+                tokens.append('_')
             else:
                 print(f"Error at position {i}: Invalid variable name '{var}'.")
                 return False  
@@ -119,6 +136,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
         elif closePram_ToAdd != 0:
             for j in range(closePram_ToAdd):
                 tokens.append(')')
+                tokens.append('_')
         
         elif open_parens < 0:
             print(f"Error at position {i}: Missing open parenthesis '{char}'.")
