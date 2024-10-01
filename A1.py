@@ -76,11 +76,46 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     :param s_: the input string
     :return: A List of tokens (strings) if a valid input, otherwise False
     """
+    s = s_.replace(' ', '')  
+    tokens = []
+    i = 0
+    
+    while i < len(s):
+        char = s[i]
+        
+        if char == '\\':  # Lambda symbol
+            tokens.append('\\')
+            i += 1
+            
+        elif char == '(':  
+            tokens.append('(')
+            i += 1
+            
+        elif char == ')':  
+            tokens.append(')')
+            i += 1
+            
+        elif char == '.':  
+            tokens.append('(')
+            tokens.append(')')
+            i += 1
+            
+        elif char in alphabet_chars:  
+            var = char
+            i += 1
+            while i < len(s) and s[i] in var_chars:
+                var += s[i]
+                i += 1
+            if is_valid_var_name(var):
+                tokens.append(var)
+            else:
+                return False  
+                
+        else:
+            return False  
+    
+    return tokens
 
-    s = s_[:]  #  Don't modify the original input string
-    # TODO
-
-    return []
 
 #eric
 def read_lines_from_txt_check_validity(fp: [str, os.PathLike]) -> None:
