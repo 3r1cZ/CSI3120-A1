@@ -64,6 +64,7 @@ class ParseTree:
         print("")
 
 
+
 def parse_tokens(s_: str) -> Union[List[str], bool]:
     """
     Gets the final tokens for valid strings as a list of strings, only for valid syntax,
@@ -80,7 +81,11 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     for k in range(len(s_)):
         if s_[k] == ' ':
             spaceNum += 1
-            continue
+            if s_[k-1] == '\\':
+                print(f"Error at position {k}: Invalid space in lamda expression '{s_[k-1]}'.")
+                return False
+            else:
+                continue
         if spaceNum > 1:
             print(f"Error at position {k}: Invalid Spacing (More than one space seperates characters).")
             continue
@@ -92,12 +97,25 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     i = 0
     closePram_ToAdd = 0
     open_parensExtra = 0 
+    openPranDone = 0
     
     while i < len(s):
         char = s[i]
         
-        if char == '\\':  # Lambda symbol
+        if char == '\\':  # Lambda error checking NEEDS update 
             tokens.append('\\')
+            
+            if(len(s) - i) < 4:
+                print(f"Error at position {i}: Invalid lamda expression '{char}'.")
+                return False
+                    
+            if not(is_valid_var_name(s[i + 2])):
+                print(f"Error at position {i}: Invalid lamda expression '{char}'.")
+                return False
+                
+            if not(is_valid_var_name(s[i + 4]) or (s[i + 4] != " ")):
+                print(f"Error at position {i}: Invalid lamda expression '{char}'.")
+                return False
             i += 1
             
         elif char == '_':  
@@ -105,12 +123,23 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             
         elif char == '(':  
             tokens.append('(')
+            openPranDone += 1
             open_parensExtra = open_parensExtra - 1
             i += 1
             
         elif char == ')':  
+            if(openPranDone == 0):
+                print(f"Error at position {i}: Invalid Parenthesis '{char}'.")
+                return False
             tokens.append(')')
             open_parensExtra = open_parensExtra + 1
+            if(s[i-1] == '('):
+                print(f"Error at position {i}: Empty expression '{char}'.")
+                return False
+            
+            if(s[i-1] == '.'):
+                print(f"Error at position {i}: Empty expression '{char}'.")
+                return False
             i += 1
             
         elif char == '.':  
@@ -130,22 +159,28 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             else:
                 print(f"Error at position {i}: Invalid variable name '{var}'.")
                 return False  
-                
-        elif closePram_ToAdd != 0:
-            for j in range(closePram_ToAdd):
-                tokens.append(')')
-        
-        elif open_parensExtra < 0:
-            print(f"Error at position {i}: Missing open parenthesis '{char}'.")
-            return False
-        
-        elif open_parensExtra > 0:
-            print(f"Error at position {i}: Missing close parenthesis '{char}'.")
-            return False
 
         else:
             print(f"Error at position {i}: Invalid character '{char}'.")
             return False  
+    
+    if closePram_ToAdd != 0:
+        if(tokens[-1] == '('):
+            print(f"Error at position {i}: Empty expression '{char}'.")
+            return False
+        
+        goal = 0
+        while goal != closePram_ToAdd:
+            tokens.append(')')
+            goal += 1
+            
+    if open_parensExtra < 0:
+        print(f"Error at position {i}: Missing open parenthesis '{char}'.")
+        return False
+        
+    if open_parensExtra > 0:
+        print(f"Error at position {i}: Missing close parenthesis '{char}'.")
+        return False
     
     return tokens
 
