@@ -19,7 +19,7 @@ def read_lines_from_txt(fp: [str, os.PathLike]) -> List[str]:
         lines = f.read().splitlines()
     return lines
 
-
+#michael
 def is_valid_var_name(s: str) -> bool:
     """
     :param s: Candidate input variable name
@@ -60,7 +60,7 @@ class ParseTree:
         print("")
 
 
-
+#matin
 def parse_tokens(s_: str) -> Union[List[str], bool]:
     """
     Gets the final tokens for valid strings as a list of strings, only for valid syntax,
@@ -78,7 +78,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
 
     return []
 
-
+#eric
 def read_lines_from_txt_check_validity(fp: [str, os.PathLike]) -> None:
     """
     Reads each line from a .txt file, and then
