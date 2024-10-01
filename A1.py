@@ -19,7 +19,7 @@ def read_lines_from_txt(fp: [str, os.PathLike]) -> List[str]:
         lines = f.read().splitlines()
     return lines
 
-#michael
+
 def is_valid_var_name(s: str) -> bool:
     """
     :param s: Candidate input variable name
@@ -64,7 +64,6 @@ class ParseTree:
         print("")
 
 
-#matin
 def parse_tokens(s_: str) -> Union[List[str], bool]:
     """
     Gets the final tokens for valid strings as a list of strings, only for valid syntax,
@@ -202,8 +201,30 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node
     :return: a node with children whose tokens are variables, parenthesis, slashes, or the inner part of an expression
     """
 
-    #TODO
-    return Node()
+    if node is None:
+        node = Node([])
+
+    while tokens:
+        token = tokens.pop(0)  # Get the next token
+
+        if token == '(' or token == '\\':  # Start of a new expression
+            if node.elem == []:
+                node.elem.append(token)
+            else:
+                # Create a new child node
+                child_node = Node([])
+                child_node.elem.append(token)
+                node.add_child_node(child_node)
+                # Recurse to build the subtree for the expression
+                build_parse_tree_rec(tokens, child_node)
+        elif token == ')':  # End of the current expression
+            # Add the ')' to the current node's elements
+            node.elem.append(token)
+            return node  # Return to the parent
+        else:  # Regular token (variable, slash, etc.)
+            node.elem.append(token)  # Add the token to the current node
+
+    return node  # Return the constructed node
 
 
 def build_parse_tree(tokens: List[str]) -> ParseTree:
