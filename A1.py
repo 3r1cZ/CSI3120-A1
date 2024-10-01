@@ -79,6 +79,8 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     s = s_.replace(' ', '')  
     tokens = []
     i = 0
+    closePram_ToAdd = 0
+    open_parens = 0 
     
     while i < len(s):
         char = s[i]
@@ -89,15 +91,17 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             
         elif char == '(':  
             tokens.append('(')
+            open_parens -= 1
             i += 1
             
         elif char == ')':  
             tokens.append(')')
+            open_parens += 1
             i += 1
             
         elif char == '.':  
             tokens.append('(')
-            tokens.append(')')
+            closePram_ToAdd = closePram_ToAdd + 1
             i += 1
             
         elif char in alphabet_chars:  
@@ -109,15 +113,29 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             if is_valid_var_name(var):
                 tokens.append(var)
             else:
+                print(f"Error at position {i}: Invalid variable name '{var}'.")
                 return False  
                 
+        elif closePram_ToAdd != 0:
+            for j in range(closePram_ToAdd):
+                tokens.append(')')
+        
+        elif open_parens < 0:
+            print(f"Error at position {i}: Missing open parenthesis '{char}'.")
+            return False
+        
+        elif open_parens > 0:
+            print(f"Error at position {i}: Missing close parenthesis '{char}'.")
+            return False
+
         else:
+            print(f"Error at position {i}: Invalid character '{char}'.")
             return False  
     
     return tokens
 
 
-#eric
+
 def read_lines_from_txt_check_validity(fp: [str, os.PathLike]) -> None:
     """
     Reads each line from a .txt file, and then
@@ -135,6 +153,8 @@ def read_lines_from_txt_check_validity(fp: [str, os.PathLike]) -> None:
             print(f"The tokenized string for input string {l} is {'_'.join(tokens)}")
     if len(valid_lines) == len(lines):
         print(f"All lines are valid")
+    else:
+        print(f"Not All lines are valid")
 
 
 
