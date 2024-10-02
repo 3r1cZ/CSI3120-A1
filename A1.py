@@ -248,25 +248,50 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node
     """
 
     if node is None:
-        node = Node([])
+        t = tokens.copy()
+        node = Node(t)
 
+    first = True
+    firstParen = True
     while tokens:
         token = tokens.pop(0)  
 
-        # sepraters for next level
-        if token == '(' or token == '\\':  
-            if node.elem == []: # add to root
-                node.elem.append(token)
-            else: # create child element for new level
-                child_node = Node([]) 
+        if token == '(' and firstParen:
+            firstParen = False
+            child_node = Node([])
+            
+        if token == '(':
+            first = False
+            child_node = Node([])
+            while token != ')':
                 child_node.elem.append(token)
-                node.add_child_node(child_node)
-                build_parse_tree_rec(tokens, child_node)
-        elif token == ')': # go back to parent level
+                token = tokens.pop(0)
+            child_node.elem.append(token)
+            node.add_child_node(child_node)
+            build_parse_tree_rec(tokens, child_node)
+        elif token == '\\' and first:
+            child_node = Node([])
+            child_node.elem.append(token)
+            while tokens:
+                token = tokens.pop(0)
+                child_node.elem.append(token)
+            node.add_child_node(child_node)
+        elif token == '\\':
+            child_node = Node([])
+            # add slash
+            child_node.elem.append(token)
+            # add variable
+            token = tokens.pop(0)
+            child_node.elem.append(token)
+            node.add_child_node(child_node)
+            build_parse_tree_rec(tokens, child_node)
+        elif is_valid_var_name(token):
+            first = False
+            node.add_child_node(Node([token]))
+        else:
+            first = False
             node.elem.append(token)
-            return node  
-        else: # normal token gets added to current level
-            node.elem.append(token)
+                
 
     return node 
 
@@ -278,6 +303,10 @@ def build_parse_tree(tokens: List[str]) -> ParseTree:
     :return: parse tree
     """
     pt = ParseTree(build_parse_tree_rec(tokens))
+    print("Root", pt.root.elem)
+    print("First", pt.root.children[0].elem)
+    print("Second", pt.root.children[1].elem)
+    print("First-first", pt.root.children[0].children[0].elem)
     return pt
 
 
