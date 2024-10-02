@@ -77,9 +77,8 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     :return: A List of tokens (strings) if a valid input, otherwise False
     """
     spaceNum = 0
-    #print(s_)
     if (s_[0] == '\\'): #error checking for    \\
-        if (len(s_) == 1) or (len(s_) == 2):      # CHECK FOR LEN OF #, when \ and just two letters together as a var for error
+        if (len(s_) == 1) or (len(s_) == 2):      
             print(f"Error at position {0}: lamda expression missing parts '{s_[0]}'.")
             return False
     
@@ -108,9 +107,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     closePram_ToAdd = 0
     open_parensExtra = 0 
     openPranDone = 0
-    
-    #print(s) ##
-    
+        
     while i < len(s):
         char = s[i]
         
@@ -182,7 +179,6 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
         print(f"Error at position {i}: Missing open parenthesis '{char}'.")
         return False
     
-    #print(tokens)
     for c in range(len(tokens)): #lambda checking
         
         if(tokens[c] == '\\' and (len(tokens) == 2)):
@@ -190,7 +186,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             return False
         
         if len(tokens) - c > 2:
-            if (tokens[c] == '\\') and not((is_valid_var_name(tokens[c+1])) and ((tokens[c+2] == '_') or (is_valid_var_name(tokens[c+2])) or ((tokens[c+2] == '(') and ((tokens[c+3] == '(') or (tokens[c+3] == '\\') or (is_valid_var_name(tokens[c+3]))) and ((tokens[c+4] == '(') or (is_valid_var_name(tokens[c+4])) or (tokens[c+4] == ')'))))):
+            if (tokens[c] == '\\') and not((is_valid_var_name(tokens[c+1])) and ((is_valid_var_name(tokens[c+2])) or ((tokens[c+2] == '(') and ((tokens[c+3] == '(') or (tokens[c+3] == '\\') or (is_valid_var_name(tokens[c+3]))) and ((tokens[c+4] == '(') or (is_valid_var_name(tokens[c+4])) or (tokens[c+4] == ')'))))):
                 print(f"Error at position {c}: Invalid lamda expression '{tokens[c]}'.")
                 return False
         
