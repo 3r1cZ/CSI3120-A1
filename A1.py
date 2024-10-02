@@ -65,7 +65,7 @@ class ParseTree:
 
 
 
-def parse_tokens(s_: str) -> Union[List[str], bool]:
+def parse_tokens(s_: str) -> Union[List[str], bool]: 
     """
     Gets the final tokens for valid strings as a list of strings, only for valid syntax,
     where tokens are (no whitespace included)
@@ -77,12 +77,22 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     :return: A List of tokens (strings) if a valid input, otherwise False
     """
     spaceNum = 0
+    #print(s_)
+    if (s_[0] == '\\'): #error checking for    \\
+        if (len(s_) == 1) or (len(s_) == 2):      # CHECK FOR LEN OF #, when \ and just two letters together as a var for error
+            print(f"Error at position {0}: lamda expression missing parts '{s_[0]}'.")
+            return False
     
     for k in range(len(s_)):
-        if s_[k] == ' ':
+            
+        if (s_[k] == '.') and (s_[k-1] == ' '):
+            print(f"Error at position {k-1}: Invalid space before dot '{s_[k-1]}'.")
+            return False
+        
+        if s_[k] == ' ': #more than 1 space error checking
             spaceNum += 1
-            if s_[k-1] == '\\':
-                print(f"Error at position {k}: Invalid space in lamda expression '{s_[k-1]}'.")
+            if s_[k-1] == '\\': # error checking for space after \\
+                print(f"Error at position {k-1}: Invalid space in lamda expression '{s_[k-1]}'.")
                 return False
             else:
                 continue
@@ -99,23 +109,13 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     open_parensExtra = 0 
     openPranDone = 0
     
+    #print(s) ##
+    
     while i < len(s):
         char = s[i]
         
-        if char == '\\':  # Lambda error checking NEEDS update 
+        if char == '\\': 
             tokens.append('\\')
-            
-            if(len(s) - i) < 4:
-                print(f"Error at position {i}: Invalid lamda expression '{char}'.")
-                return False
-                    
-            if not(is_valid_var_name(s[i + 2])):
-                print(f"Error at position {i}: Invalid lamda expression '{char}'.")
-                return False
-                
-            if not(is_valid_var_name(s[i + 4]) or (s[i + 4] != " ")):
-                print(f"Error at position {i}: Invalid lamda expression '{char}'.")
-                return False
             i += 1
             
         elif char == '_':  
@@ -129,7 +129,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             
         elif char == ')':  
             if(openPranDone == 0):
-                print(f"Error at position {i}: Invalid Parenthesis '{char}'.")
+                print(f"Error at position {i}: Invalid use of Close Parenthesis '{char}'.")
                 return False
             tokens.append(')')
             open_parensExtra = open_parensExtra + 1
@@ -138,7 +138,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
                 return False
             
             if(s[i-1] == '.'):
-                print(f"Error at position {i}: Empty expression '{char}'.")
+                print(f"Error at position {i}: Empty expression, dot is followed by invalid input (parenthesis) '{char}'.")
                 return False
             i += 1
             
@@ -165,7 +165,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             return False  
     
     if closePram_ToAdd != 0:
-        if(tokens[-1] == '('):
+        if(tokens[-1] == '('): #checking if ending with open bracket (error)
             print(f"Error at position {i}: Empty expression '{char}'.")
             return False
         
@@ -174,16 +174,27 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             tokens.append(')')
             goal += 1
             
-    if open_parensExtra < 0:
-        print(f"Error at position {i}: Missing open parenthesis '{char}'.")
-        return False
-        
-    if open_parensExtra > 0:
+    if open_parensExtra < 0: #bracket checking
         print(f"Error at position {i}: Missing close parenthesis '{char}'.")
         return False
+        
+    if open_parensExtra > 0: # bracket checking
+        print(f"Error at position {i}: Missing open parenthesis '{char}'.")
+        return False
     
+    #print(tokens)
+    for c in range(len(tokens)): #lambda checking
+        
+        if(tokens[c] == '\\' and (len(tokens) == 2)):
+            print(f"Error at position {c}: Invalid lamda expression '{tokens[c]}'.")
+            return False
+        
+        if len(tokens) - c > 2:
+            if (tokens[c] == '\\') and not((is_valid_var_name(tokens[c+1])) and ((tokens[c+2] == '_') or (is_valid_var_name(tokens[c+2])) or ((tokens[c+2] == '(') and ((tokens[c+3] == '(') or (tokens[c+3] == '\\') or (is_valid_var_name(tokens[c+3]))) and ((tokens[c+4] == '(') or (is_valid_var_name(tokens[c+4])) or (tokens[c+4] == ')'))))):
+                print(f"Error at position {c}: Invalid lamda expression '{tokens[c]}'.")
+                return False
+        
     return tokens
-
 
 
 def read_lines_from_txt_check_validity(fp: [str, os.PathLike]) -> None:
