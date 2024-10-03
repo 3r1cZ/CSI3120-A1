@@ -89,7 +89,7 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
     spaceNum = 0
     if (s_[0] == '\\'): #error checking for    \\
         if (len(s_) == 1) or (len(s_) == 2):      
-            print(f"Error at position {0}: lamda expression missing parts '{s_[0]}'.")
+            print(f"Error at position {0}: lambda expression missing parts '{s_[0]}'.")
             return False
     
     for k in range(len(s_)):
@@ -243,7 +243,7 @@ def read_lines_from_txt_output_parse_tree(fp: [str, os.PathLike]) -> None:
 
 
 #used chat to fix some bugs, i have screenshot
-def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None, first_slash_seen=False) -> Node:
+def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None, first_slash_seen=False, first_paren_seen=False) -> Node:
     """
     An inner recursive function to build a parse tree
     :param tokens: A list of token strings
@@ -257,25 +257,32 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None, first_s
         token = tokens.pop(0)
 
         if token == '(':
-            # Print rest of the tokens on the same line
-            child_node = Node([token] + tokens)
-            node.add_child_node(child_node)
-
-            # Indent and continue processing inside parentheses
-            build_parse_tree_rec(tokens, child_node, first_slash_seen)
+            if not first_slash_seen:
+                child_node = Node([token])
+                node.add_child_node(child_node)
+                first_paren_seen = True
+                build_parse_tree_rec(tokens, node, first_slash_seen, first_paren_seen)
+            else:
+                # Print rest of the tokens on the same line
+                child_node = Node([token] + tokens)
+                node.add_child_node(child_node)
+                # Indent and continue processing inside parentheses
+                build_parse_tree_rec(tokens, child_node)
 
         elif token == ')':
+            child_node = Node([token])
+            node.add_child_node(child_node)
             return node
 
         elif token == '\\':
             if not first_slash_seen:  # If first backslash at the root level
                 node.elem.append(token)  # Include '\' in the root level
                 first_slash_seen = True  # Mark the first backslash
-                build_parse_tree_rec(tokens, node, first_slash_seen)
+                build_parse_tree_rec(tokens, node, first_slash_seen, first_paren_seen)
             else:  # Handle when '\' is encountered later in the tree
                 child_node = Node([token])
                 node.add_child_node(child_node)
-                build_parse_tree_rec(tokens, child_node, first_slash_seen)
+                build_parse_tree_rec(tokens, child_node)
 
         else:
             # Regular variable or element, append directly to the node
