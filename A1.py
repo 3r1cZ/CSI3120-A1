@@ -265,8 +265,6 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None, first_s
             build_parse_tree_rec(tokens, child_node, first_slash_seen)
 
         elif token == ')':
-            # Just append the closing parenthesis
-            node.elem.append(token)
             return node
 
         elif token == '\\':
