@@ -68,7 +68,7 @@ class ParseTree:
         self.global_counter = 0  
         self.stopped = False  
 
-    def print_tree(self, node: Optional[Node] = None, level: int = 0) -> None:
+    def print_tree(self, node: Optional[Node] = None, level: int = -1) -> None:
         if self.stopped:
             return  
 
@@ -317,10 +317,7 @@ def build_parse_tree(tokens: List[str]) -> ParseTree:
     :param tokens: List of tokens
     :return: parse tree
     """
-    print('\n')
-    
-    print(*tokens, sep='')
-        
+    print("\n")
     root_node = build_parse_tree_rec(tokens)
     return ParseTree(root_node, tokens)
     
