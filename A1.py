@@ -23,16 +23,20 @@ def read_lines_from_txt(fp: [str, os.PathLike]) -> List[str]:
 
 def is_valid_var_name(s: str) -> bool:
     """
-    :param s: Candidate input variable name
-    :return: True if the variable name starts with a character,
-    and contains only characters and digits. Returns False otherwise.
+    Checks if a string is a valid variable name.
+
+    :param s: Input string
+    :return: True if the name starts with a letter and contains only letters and digits
     """
+    # Check if the first character is a letter
     if (s[0] in alphabet_chars):
+        # Check if all characters are letters or digits
         for i in s:
-            if not(i in alphabet_chars or i in numeric_chars):
+            if not (i in alphabet_chars or i in numeric_chars):
                 return False    
         return True
     return False
+
 
 
 
@@ -55,128 +59,117 @@ class Node:
 
 
 
-class ParseTree:
-    """
-    A full parse tree, with nodes
-    Attributes:
-        root: the root of the tree
-        length: the length of the tokens list when it's first called
-    """
+class ParseTree:   # A class to represent a full parse tree.
+    
     def __init__(self, root, tokens: Optional[List[str]] = None):
-        self.root = root
-        self.length = len(tokens) if tokens else None  
-        self.global_counter = 0  
-        self.stopped = False  
+        self.root = root # The root node of the tree
+        self.length = len(tokens) if tokens else None  # Length of the tokens list(to know when to stop)
+        self.global_counter = 0  # counter for printed elements
+        self.stopped = False  # Flag to stop
 
     def print_tree(self, node: Optional[Node] = None, level: int = -1) -> None:
+        """
+        Prints the parse tree, respecting the global length limit.
+
+        :param node: The current node being processed (defaults to root).
+        :param level: Current level in the tree for indentation (defaults to -1 in order to print root).
+        """
         if self.stopped:
-            return  
+            return  # Stop if length is reached
 
         if node is None:
             node = self.root
-            
 
+        # Loop through each element in the node
         for e in node.elem:
-            if self.global_counter == self.length:  
-                self.stopped = True  
+            if self.global_counter == self.length:  # Stop if length limit is reached
+                self.stopped = True
                 return  
             
-            
-            if e == '\\' or e == '(':
+            if e == '\\' or e == '(':  # Print '\\' or '(' with correct formatting
                 print('----' * level + '_'.join((node.elem[self.global_counter:])))
                 level += 1
                 print('----' * level + '_'.join(e))
                 self.global_counter += 1
             else:
-                print('----' * level + '_'.join(e))
+                print('----' * level + '_'.join(e)) # Print regular elements
                 self.global_counter += 1
         
+        # Recursively print child nodes
         for child in node.children:
             if not self.stopped:
-                self.print_tree(child, level + 1)         
+                self.print_tree(child, level + 1)
+       
 
 
 
-def parse_tokens(s_: str) -> Union[List[str], bool]:
+def parse_tokens(s_: str) -> Union[List[str], bool]: 
     """
-    Gets the final tokens for valid strings as a list of strings, only for valid syntax,
-    where tokens are (no whitespace included)
-    \\ values for lambdas
-    valid variable names
-    opening and closing parenthesis
-    Note that dots are replaced with corresponding parenthesis
-    :param s_: the input string
-    :return: A List of tokens (strings) if a valid input, otherwise False
+    Parse input string into tokens for valid syntax.
+    :param s_: The input string
+    :return: List of tokens or False if invalid
     """
     spaceNum = 0
-    if (s_[0] == '\\'): #error checking for    \\
-        if (len(s_) == 1) or (len(s_) == 2):      
+    if s_[0] == '\\':  # Check for incomplete lambda expression
+        if len(s_) == 1 or len(s_) == 2:      
             print(f"Error at position {0}: lambda expression missing parts '{s_[0]}'.")
             return False
-   
-    for k in range(len(s_)):
-           
-        if (s_[k] == '.') and (s_[k-1] == ' '):
+
+    for k in range(len(s_)):  # Loop through s_
+        if s_[k] == '.' and s_[k-1] == ' ':  # Check for invalid space before dot
             print(f"Error at position {k-1}: Invalid space before dot '{s_[k-1]}'.")
             return False
-       
-        if s_[k] == ' ': #more than 1 space error checking
+
+        if s_[k] == ' ':  # Multiple spaces check
             spaceNum += 1
-            if s_[k-1] == '\\': # error checking for space after \\
-                print(f"Error at position {k-1}: Invalid space in lamda expression '{s_[k-1]}'.")
+            if s_[k-1] == '\\':  # Invalid space after '\\'
+                print(f"Error at position {k-1}: Invalid space in lambda expression '{s_[k-1]}'.")
                 return False
             else:
                 continue
-        if spaceNum > 1:
-            print(f"Error at position {k}: Invalid Spacing (More than one space seperates characters).")
+        if spaceNum > 1:  # More than one space
+            print(f"Error at position {k}: Invalid spacing.")
             continue
         else:
-            spaceNum = 0
-   
-    s = s_.replace(' ', '_')  
+            spaceNum = 0 #reset spaceNum(dont want more than one space bewteen items)
+
+    s = s_.replace(' ', '_')  # Replace spaces with '_'
     tokens = []
     i = 0
-    closePram_ToAdd = 0
-    open_parensExtra = 0
-    openPranDone = 0
-       
-    while i < len(s):
+    closePram_ToAdd = 0 # ) needed to add at the end due to . operator
+    open_parensExtra = 0 # counter for ( to check for equality in ( and )
+    openPranDone = 0 # see if first bracket done is a ) which would be invalid
+
+    while i < len(s):  # Tokenize the string
         char = s[i]
-       
-        if char == '\\':
+        if char == '\\':  # Lambda token
             tokens.append('\\')
             i += 1
-           
-        elif char == '_':  
+        elif char == '_':  # Skip underscores
             i += 1
-           
-        elif char == '(':  
+        elif char == '(':  # Open parenthesis
             tokens.append('(')
             openPranDone += 1
-            open_parensExtra = open_parensExtra - 1
+            open_parensExtra -= 1
             i += 1
-           
-        elif char == ')':  
-            if(openPranDone == 0):
-                print(f"Error at position {i}: Invalid use of Close Parenthesis '{char}'.")
+        elif char == ')':  # Close parenthesis
+            if openPranDone == 0:
+                print(f"Error at position {i}: Invalid close parenthesis '{char}'.")
                 return False
             tokens.append(')')
-            open_parensExtra = open_parensExtra + 1
-            if(s[i-1] == '('):
+            open_parensExtra += 1
+            if s[i-1] == '(':
                 print(f"Error at position {i}: Empty expression '{char}'.")
                 return False
-           
-            if(s[i-1] == '.'):
-                print(f"Error at position {i}: Empty expression, dot is followed by invalid input (parenthesis) '{char}'.")
+            if s[i-1] == '.':
+                print(f"Error at position {i}: Empty expression after dot '{char}'.")
                 return False
             i += 1
-           
-        elif char == '.':  
+        elif char == '.':  # Dot represents an open parenthesis
             tokens.append('(')
-            closePram_ToAdd = closePram_ToAdd + 1
+            closePram_ToAdd += 1
             i += 1
-           
-        elif char in alphabet_chars:  
+        elif char in alphabet_chars:  # Valid variable names
             var = char
             i += 1
             while i < len(s) and s[i] in var_chars:
@@ -184,36 +177,31 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
                 i += 1
             if is_valid_var_name(var):
                 tokens.append(var)
-
-
             else:
                 print(f"Error at position {i}: Invalid variable name '{var}'.")
-                return False  
-
-
-        else:
+                return False
+        else:  # Invalid character
             print(f"Error at position {i}: Invalid character '{char}'.")
-            return False  
-   
-    if closePram_ToAdd != 0:
-        if(tokens[-1] == '('): #checking if ending with open bracket (error)
-            print(f"Error at position {i}: Empty expression '{char}'.")
             return False
-       
+
+    if closePram_ToAdd != 0:  # Check for unmatched parentheses
+        if tokens[-1] == '(':
+            print(f"Error at position {i}: Empty expression.")
+            return False
         goal = 0
         while goal != closePram_ToAdd:
             tokens.append(')')
             goal += 1
-           
-    if open_parensExtra < 0: #bracket checking
-        print(f"Error at position {i}: Missing close parenthesis '{char}'.")
+
+    if open_parensExtra < 0:  # Missing closing parenthesis
+        print(f"Error at position {i}: Missing close parenthesis.")
         return False
-       
-    if open_parensExtra > 0: # bracket checking
-        print(f"Error at position {i}: Missing open parenthesis '{char}'.")
+
+    if open_parensExtra > 0:  # Missing opening parenthesis
+        print(f"Error at position {i}: Missing open parenthesis.")
         return False
    
-    for c in range(len(tokens)): #lambda checking
+    for c in range(len(tokens)): #lambda error checking
        
         if(tokens[c] == '\\' and (len(tokens) == 2)):
             print(f"Error at position {c}: Invalid lamda expression '{tokens[c]}'.")
@@ -247,7 +235,7 @@ def read_lines_from_txt_check_validity(fp: [str, os.PathLike]) -> None:
     if len(valid_lines) == len(lines):
         print(f"All lines are valid")
     else:
-        print(f"Not All lines are valid")
+        print(f"Not All lines are valid") # Added this to show when there is an atleast one invalid example
 
 
 def read_lines_from_txt_output_parse_tree(fp: [str, os.PathLike]) -> None:
@@ -271,44 +259,42 @@ def read_lines_from_txt_output_parse_tree(fp: [str, os.PathLike]) -> None:
 
 def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node:
     """
-    An inner recursive function to build a parse tree
+    Recursively build a parse tree from a list of tokens.
     :param tokens: A list of token strings
     :param node: A Node object
-    :return: a node with children whose tokens are variables, parenthesis, slashes, or the inner part of an expression
+    :return: A node with children representing variables, parentheses, or lambdas
     """
-   
-    if (node == None):  ## Base case: creating the root node of tree
+    
+    if node is None:  # Create root node if not provided
         node = Node()
 
     index = 0
-    node.elem = tokens
+    node.elem = tokens  # set tokens to the node's element list
 
-
-    while (index<len(tokens)):
+    # Traverse through the tokens
+    while index < len(tokens):
         token = tokens[index]
 
-        if(token == '('): ## grammar where <expr> ::= '(' <expr> ')'
+        if token == '(':  # Handle opening parenthesis(want to print remaining tokens, then resume normally)
             node.add_child_node(Node(node.elem))
             return build_parse_tree_rec(tokens[1:], node)
-        
-        if(token == ')'): ## grammar where <expr> ::= '(' <expr> ')'
+
+        if token == ')':  # Handle closing parenthesis
             node.add_child_node(Node([')']))
             index += 1
             return build_parse_tree_rec(tokens[1:], node)
-       
-        elif token == '\\':
+
+        elif token == '\\':  # Handle lambda expressions(want to print remaining tokens, then resume normally)
             node.add_child_node(Node(node.elem))
             return build_parse_tree_rec(tokens[1:], node)
- 
-        elif is_valid_var_name(token):
+
+        elif is_valid_var_name(token):  # Handle valid variable names
             node.add_child_node(Node([token]))
             index += 1
             return build_parse_tree_rec(tokens[1:], node)
 	
-    return node
+    return node 
 
-
-   
 
 
 def build_parse_tree(tokens: List[str]) -> ParseTree:
