@@ -86,7 +86,7 @@ class ParseTree:   # A class to represent a full parse tree.
                 self.stopped = True
                 return  
             
-            if e == '\\' or e == '(':  # Print '\\' or '(' with correct formatting
+            if e == '\\' or e == '(' or (self.global_counter == 0):  # Print '\\' or '(' with correct formatting
                 print('----' * level + '_'.join((node.elem[self.global_counter:])))
                 level += 1
                 print('----' * level + '_'.join(e))
@@ -264,9 +264,10 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node
     :param node: A Node object
     :return: A node with children representing variables, parentheses, or lambdas
     """
-    
+    first = False
     if node is None:  # Create root node if not provided
         node = Node()
+        first = True
 
     index = 0
     node.elem = tokens  # set tokens to the node's element list
@@ -285,6 +286,10 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node
             return build_parse_tree_rec(tokens[1:], node)
 
         elif token == '\\':  # Handle lambda expressions(want to print remaining tokens, then resume normally)
+            node.add_child_node(Node(node.elem))
+            return build_parse_tree_rec(tokens[1:], node)
+        
+        elif (is_valid_var_name(token)) and (first == True):  # Handle lambda expressions(want to print remaining tokens, then resume normally)
             node.add_child_node(Node(node.elem))
             return build_parse_tree_rec(tokens[1:], node)
 
