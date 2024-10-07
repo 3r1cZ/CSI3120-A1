@@ -62,15 +62,16 @@ class ParseTree:
     def print_tree(self, node: Optional[Node] = None, level: int = 0, first_slash_seen=False) -> None:
         if node is None:
             node = self.root
-
+        
         if all(isinstance(e, str) for e in node.elem):
             if '\\' in node.elem and level == 0 and not first_slash_seen:
-                print('_'.join(node.elem))  
-                first_slash_seen = True  
+                print('_'.join(node.elem))
+                first_slash_seen = True
             else:
                 print('----' * level + '_'.join(node.elem))
 
         for child in node.children:
+            
             self.print_tree(child, level + 1, first_slash_seen)
 
 
@@ -242,54 +243,69 @@ def read_lines_from_txt_output_parse_tree(fp: [str, os.PathLike]) -> None:
             parse_tree2.print_tree()
 
 
-#used chat to fix some bugs, i have screenshot
-def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None, first_slash_seen=False, first_paren_seen=False) -> Node:
+def update_index(tokens: List[str], index: int) -> int:
+    """
+    A helper function to update the index based on encountering an opening parenthesis '('.
+    The function will increment the index until the matching closing parenthesis ')' is found.
+    :param tokens: A list of token strings
+    :param index: The current index at which the '(' is encountered
+    :return: Updated index after processing the parentheses
+    """
+    count = 0
+    for i in range(index, len(tokens)):
+        if tokens[i] == '(':
+            count += 1
+        elif tokens[i] == ')':
+            count -= 1
+        if count == 0:
+            return i
+
+def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node:
     """
     An inner recursive function to build a parse tree
     :param tokens: A list of token strings
     :param node: A Node object
     :return: a node with children whose tokens are variables, parenthesis, slashes, or the inner part of an expression
     """
-    if node is None:
-        node = Node()
+    
+    if (node == None):  ## Base case: creating the root node of tree
+        node = Node(tokens)
 
-    while tokens:
-        token = tokens.pop(0)
+    index = 0
+    while (index<len(tokens)):
+        token = tokens[index]
 
-        if token == '(':
-            if not first_slash_seen:
-                child_node = Node([token])
-                node.add_child_node(child_node)
-                first_paren_seen = True
-                build_parse_tree_rec(tokens, node, first_slash_seen, first_paren_seen)
-            else:
-                # Print rest of the tokens on the same line
-                child_node = Node([token] + tokens)
-                node.add_child_node(child_node)
-                # Indent and continue processing inside parentheses
-                build_parse_tree_rec(tokens, child_node)
-
-        elif token == ')':
-            child_node = Node([token])
-            node.add_child_node(child_node)
-            return node
-
+        if(token == '('): ## grammar where <expr> ::= '(' <expr> ')'
+            indexNew = update_index(tokens, index)
+            expr = tokens[index+1:indexNew]
+            subtree = build_parse_tree_rec(expr)
+            node.add_child_node(Node(['(']))
+            node.add_child_node(subtree)
+            node.add_child_node(Node([')']))
+            index = indexNew + 1
+            
+        
         elif token == '\\':
-            if not first_slash_seen:  # If first backslash at the root level
-                node.elem.append(token)  # Include '\' in the root level
-                first_slash_seen = True  # Mark the first backslash
-                build_parse_tree_rec(tokens, node, first_slash_seen, first_paren_seen)
-            else:  # Handle when '\' is encountered later in the tree
-                child_node = Node([token])
-                node.add_child_node(child_node)
-                build_parse_tree_rec(tokens, child_node)
-
-        else:
-            # Regular variable or element, append directly to the node
+            node.add_child_node(Node(['\\'])) 
+            if(index+1<len(tokens) and is_valid_var_name(tokens[index+1])):
+                var_node = Node([tokens[index+1]])
+                node.add_child_node(var_node)
+                index += 2
+                expr = build_parse_tree_rec(tokens[index:])
+                node.add_child_node(expr)
+                break
+                
+ 
+        elif is_valid_var_name(token):
             node.add_child_node(Node([token]))
-
+            index +=1
+        
+        else:
+            index +=1
+        
     return node
 
+    
 
 def build_parse_tree(tokens: List[str]) -> ParseTree:
     """
@@ -298,7 +314,6 @@ def build_parse_tree(tokens: List[str]) -> ParseTree:
     :return: parse tree
     """
     print('\n')
-    print(f"Root: {'_'.join(tokens)}")   #Printing the root
     root_node = build_parse_tree_rec(tokens)
     return ParseTree(root_node)
 
