@@ -98,12 +98,11 @@ def parse_tokens(s_: str) -> Union[List[str], bool]:
             if s_[k-1] == '\\': # error checking for space after \\
                 print(f"Error at position {k-1}: Invalid space in lamda expression '{s_[k-1]}'.")
                 return False
-            else:
-                continue
+                
         if spaceNum > 1:
             print(f"Error at position {k}: Invalid Spacing (More than one space seperates characters).")
-            continue
-        else:
+            return False
+        elif s_[k] != ' ':
             spaceNum = 0
     
     s = s_.replace(' ', '_')  
