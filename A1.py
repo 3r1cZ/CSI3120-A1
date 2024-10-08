@@ -59,20 +59,14 @@ class ParseTree:
     def __init__(self, root):
         self.root = root
 
-    def print_tree(self, node: Optional[Node] = None, level: int = 0, first_slash_seen=False) -> None:
-        if node is None:
+    def print_tree(self, node: Optional[Node] = None, level: int = 0) -> None:
+        if node is None: 
             node = self.root
-        
-        if all(isinstance(e, str) for e in node.elem):
-            if '\\' in node.elem and level == 0 and not first_slash_seen:
-                print('_'.join(node.elem))
-                first_slash_seen = True
-            else:
-                print('----' * level + '_'.join(node.elem))
+
+        print('----' * level + '_'.join(node.elem))
 
         for child in node.children:
-            
-            self.print_tree(child, level + 1, first_slash_seen)
+            self.print_tree(child, level + 1)
 
 
 
@@ -303,9 +297,9 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node
                 break # since we do the recursive call with the rest of the expression, we conclude the iteration of the while loop
                 
  
-        elif is_valid_var_name(token):
-            node.add_child_node(Node([token]))
-            index +=1
+        elif is_valid_var_name(token):  ## grammar where <expr> ::= <var>
+            node.add_child_node(Node([token])) ## create a new node with elem as the variable and set it as a child of the current node
+            index +=1 ## increase the index to go to the token after the var
         
         else:
             index +=1
