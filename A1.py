@@ -72,124 +72,123 @@ class ParseTree:
 
 def parse_tokens(s_: str) -> Union[List[str], bool]: 
     """
-    Gets the final tokens for valid strings as a list of strings, only for valid syntax,
-    where tokens are (no whitespace included)
-    \\ values for lambdas
-    valid variable names
-    opening and closing parenthesis
-    Note that dots are replaced with corresponding parenthesis
-    :param s_: the input string
-    :return: A List of tokens (strings) if a valid input, otherwise False
+    Tokenizes the input string based on lambda calculus syntax. 
+    Identifies variables, parentheses, and lambda expressions.
+    :param s_: The input string
+    :return: List of tokens if valid, otherwise False
     """
-    spaceNum = 0
-    if (s_[0] == '\\'): #error checking for    \\
+    
+    spaceNum = 0  # Counter for consecutive spaces
+    
+    if (s_[0] == '\\'):  # Error check for invalid lambda expressions like \ or \a (too short)
         if (len(s_) == 1) or (len(s_) == 2):      
             print(f"Error at position {0}: lambda expression missing parts '{s_[0]}'.")
             return False
     
-    for k in range(len(s_)):
-            
-        if (s_[k] == '.') and (s_[k-1] == ' '):
+    for k in range(len(s_)):    # Loop through the string for initial error checks on spacing
+        
+        if (s_[k] == '.') and (s_[k-1] == ' '):    # Error if a dot is preceded by a space
             print(f"Error at position {k-1}: Invalid space before dot '{s_[k-1]}'.")
             return False
         
-        if s_[k] == ' ': #more than 1 space error checking
+        if s_[k] == ' ':     # Checking for more than 1 space between items (using spacenum var)
             spaceNum += 1
-            if s_[k-1] == '\\': # error checking for space after \\
-                print(f"Error at position {k-1}: Invalid space in lamda expression '{s_[k-1]}'.")
+            if s_[k-1] == '\\':     # Error if a space directly follows a lambda
+                print(f"Error at position {k-1}: Invalid space in lambda expression '{s_[k-1]}'.")
                 return False
-                
-        if spaceNum > 1:
-            print(f"Error at position {k}: Invalid Spacing (More than one space seperates characters).")
+        if spaceNum > 1:  # Error if more than one space is found
+            print(f"Error at position {k}: Invalid Spacing (More than one space separates characters).")
             return False
         elif s_[k] != ' ':
-            spaceNum = 0
+            spaceNum = 0  # Reset space counter for valid input
     
-    s = s_.replace(' ', '_')  
-    tokens = []
-    i = 0
-    closePram_ToAdd = 0
-    open_parensExtra = 0 
-    openPranDone = 0
-        
-    while i < len(s):
+    
+    s = s_.replace(' ', '_')  # Replace spaces with underscores for processing
+    tokens = []  # List to hold tokens
+    i = 0 # counter for s varible
+    closePram_ToAdd = 0  # Counter for parentheses needed due to dot operator
+    open_parensExtra = 0  # Counter for open parentheses
+    openPranDone = False  # Flag for first complete open parentheses
+    
+    while i < len(s):     # Loop through the string to tokenize
         char = s[i]
         
-        if char == '\\': 
+        if char == '\\':  # Lambda token
             tokens.append('\\')
             i += 1
             
-        elif char == '_':  
+        elif char == '_':  # Skip underscores (spaces replaced)
             i += 1
             
-        elif char == '(':  
+        elif char == '(':  # Open parentheses token
             tokens.append('(')
-            openPranDone += 1
-            open_parensExtra = open_parensExtra - 1
+            openPranDone = True
+            open_parensExtra -= 1
             i += 1
             
-        elif char == ')':  
-            if(openPranDone == 0):
+        elif char == ')':  # Close parentheses token
+            if openPranDone == False:  # Error for unmatched closing parentheses
                 print(f"Error at position {i}: Invalid use of Close Parenthesis '{char}'.")
                 return False
             tokens.append(')')
-            open_parensExtra = open_parensExtra + 1
-            if(s[i-1] == '('):
+            open_parensExtra += 1 # adding a open pran
+            
+            if s[i-1] == '(': # Error if empty parentheses found
                 print(f"Error at position {i}: Empty expression '{char}'.")
                 return False
             
-            if(s[i-1] == '.'):
+            if s[i-1] == '.': # Error if invalid use of dot
                 print(f"Error at position {i}: Empty expression, dot is followed by invalid input (parenthesis) '{char}'.")
                 return False
             i += 1
             
-        elif char == '.':  
+        elif char == '.':  # Treat dot as an open parenthesis
             tokens.append('(')
-            closePram_ToAdd = closePram_ToAdd + 1
+            closePram_ToAdd += 1
             i += 1
             
-        elif char in alphabet_chars:  
-            var = char
+        elif char in alphabet_chars:  # Valid variable name
+            var = char # hold chars, if 
             i += 1
-            while i < len(s) and s[i] in var_chars:
+            while i < len(s) and s[i] in var_chars:  # Continue collecting characters for variable
                 var += s[i]
                 i += 1
-            if is_valid_var_name(var):
+            
+            if is_valid_var_name(var): # Validate the variable name
                 tokens.append(var)
-
-            else:
+            else: 
                 print(f"Error at position {i}: Invalid variable name '{var}'.")
                 return False  
-
         else:
-            print(f"Error at position {i}: Invalid character '{char}'.")
+            print(f"Error at position {i}: Invalid character '{char}'.")  # Invalid character error(all other errors are handled) ex: +
             return False  
     
+    # Ensure all open parentheses are matched
     if closePram_ToAdd != 0:
-        if(tokens[-1] == '('): #checking if ending with open bracket (error)
+        if tokens[-1] == '(':  # Error if expression ends with open parenthesis
             print(f"Error at position {i}: Empty expression '{char}'.")
             return False
-        
-        goal = 0
-        while goal != closePram_ToAdd:
+        goal = 0 #counter for our while loop to add rest of close parenthesis
+        while goal != closePram_ToAdd:         # Add closing parentheses(needed to complete the . operator)
             tokens.append(')')
             goal += 1
             
-    if open_parensExtra < 0: #bracket checking
+    if open_parensExtra < 0:  # Error if unmatched closing parentheses
         print(f"Error at position {i}: Missing close parenthesis '{char}'.")
         return False
         
-    if open_parensExtra > 0: # bracket checking
+    if open_parensExtra > 0:  # Error if unmatched opening parentheses
         print(f"Error at position {i}: Missing open parenthesis '{char}'.")
         return False
     
-    for c in range(len(tokens)): #lambda checking
-        
-        if(tokens[c] == '\\' and (len(tokens) == 2)):
-            print(f"Error at position {c}: Invalid lamda expression '{tokens[c]}'.")
+    # Additional validation for lambda expressions
+    for c in range(len(tokens)):
+        if tokens[c] == '\\' and len(tokens) == 2:         # Error if lambda expression is missing items
+            print(f"Error at position {c}: Invalid lambda expression '{tokens[c]}'.")
             return False
         
-        if len(tokens) - c > 2:
+        #to make proper i would make a recursive function to call to check for correct lamda grammar, was having loads of issues so ended up with this
+        if len(tokens) - c > 2:         # Check for validity in lambda expression syntax(NOT the best way to check but it works in our case)
             if (tokens[c] == '\\') and not((is_valid_var_name(tokens[c+1])) and ((is_valid_var_name(tokens[c+2])) or ((tokens[c+2] == '(') and ((tokens[c+3] == '(') or (tokens[c+3] == '\\') or (is_valid_var_name(tokens[c+3]))) and ((tokens[c+4] == '(') or (is_valid_var_name(tokens[c+4])) or (tokens[c+4] == ')'))))):
                 print(f"Error at position {c}: Invalid lamda expression '{tokens[c]}'.")
                 return False
