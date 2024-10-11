@@ -269,35 +269,35 @@ def build_parse_tree_rec(tokens: List[str], node: Optional[Node] = None) -> Node
 
         if(token == '('): ## grammar where <expr> ::= '(' <expr> ')' 
             indexNew = update_index(tokens, index) ## find the index of the ')'
-            expr = tokens[index+1:indexNew] ## extract the expression between the ()
+            expr = tokens[index+1:indexNew]
             if(len(expr) > 1):
                 subtree = build_parse_tree_rec(expr) ## do a recursive call to the expression to create a "sub" parse tree
-                node.add_child_node(Node(['('])) ## in the node, we add the '(' as a child node with elem set as the '('
-                node.add_child_node(subtree) ## after recursing through the expression, we add the returned node as a child of the current node
-                node.add_child_node(Node([')'])) ## in the node, we add the ')' as a child node with elem set as the ')'
-                index = indexNew + 1 ## update the index to the index after the ')', we go to next iteration of while loop
+                node.add_child_node(Node(['(']))
+                node.add_child_node(subtree)
+                node.add_child_node(Node([')']))
+                index = indexNew + 1 
             else:
-                node.add_child_node(Node(['('])) ## in the node, we add the '(' as a child node with elem set as the '('
+                node.add_child_node(Node(['(']))
                 node.add_child_node(Node(expr)) ## after recursing through the expression, we add the returned node as a child of the current node
-                node.add_child_node(Node([')'])) ## in the node, we add the ')' as a child node with elem set as the ')'
+                node.add_child_node(Node([')'])) 
                 index = indexNew + 1 ## update the index to the index after the ')', we go to next iteration of while loop
 
             
         
         elif token == '\\': ## grammar where <expr> ::= '\' <var> <expr>
-            node.add_child_node(Node(['\\'])) ## we add a child node to the current node with elem set as the '\'
+            node.add_child_node(Node(['\\'])) 
             if(index+1<len(tokens) and is_valid_var_name(tokens[index+1])): 
-                var_node = Node([tokens[index+1]]) ## create a new node with the elem set as the variable name
-                node.add_child_node(var_node) ## we add the new node as a child of the current node
+                var_node = Node([tokens[index+1]]) 
+                node.add_child_node(var_node) 
                 index += 2 ## we increase the index to then go to where the expr commences
                 expr = build_parse_tree_rec(tokens[index:])  ## we do a recursive call to the expressions, which returns a node containing the "sub" parse tree
-                node.add_child_node(expr) ## add the node as a child
+                node.add_child_node(expr) 
                 break # since we do the recursive call with the rest of the expression, we conclude the iteration of the while loop
-                
+
  
         elif is_valid_var_name(token):  ## grammar where <expr> ::= <var>
-            node.add_child_node(Node([token])) ## create a new node with elem as the variable and set it as a child of the current node
-            index +=1 ## increase the index to go to the token after the var
+            node.add_child_node(Node([token])) 
+            index +=1 
         
         else:
             index +=1
